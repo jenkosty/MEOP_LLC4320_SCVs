@@ -13,7 +13,7 @@ snapshot_dates = {'01-Oct-2011','01-Nov-2011', '01-Dec-2011', '01-Jan-2012', '01
     '01-Jun-2012', '01-Jul-2012', '01-Aug-2012', '01-Sep-2012'};
 
 %%% Cycling through snapshots
-for i = 1:length(snapshot_dates)
+for i = 8:10 %1:length(snapshot_dates)
     date = snapshot_dates{i};
     disp(date);
     creatingSyntheticSealTracks(date, qc_ts, input_path, output_path)
