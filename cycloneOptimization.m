@@ -29,10 +29,6 @@ for ii = 1:length(snapshot_dates)
             spice_gauss_tag = spice_gauss{tag_no};
             dha_gauss_tag = dha_gauss{tag_no};
 
-            if median(dha_gauss_tag(i).dataX) > 0
-                continue
-            end
-
             cyclone_data(u).date = date;
             cyclone_data(u).tag_no = tag_no;
             cyclone_data(u).cast = i;
@@ -42,21 +38,15 @@ for ii = 1:length(snapshot_dates)
             cyclone_data(u).anom_A = spice_gauss_tag(i).A;
             cyclone_data(u).anom_R2 = spice_gauss_tag(i).R2;
             cyclone_data(u).anom_nrmse = spice_gauss_tag(i).nrmse;
-            cyclone_data(u).anom_H = spice_gauss_tag(i).H;
             cyclone_data(u).anom_Hcore = spice_gauss_tag(i).Hcore;
             cyclone_data(u).anom_P = spice_gauss_tag(i).P;
-            cyclone_data(u).anom_Plow = spice_gauss_tag(i).Plow;
-            cyclone_data(u).anom_Phih = spice_gauss_tag(i).Phih;
 
             %%% DHA gauss
             cyclone_data(u).dha_A = dha_gauss_tag(i).A;
             cyclone_data(u).dha_R2 = dha_gauss_tag(i).R2;
             cyclone_data(u).dha_nrmse = dha_gauss_tag(i).nrmse;
-            cyclone_data(u).dha_H = dha_gauss_tag(i).H;
             cyclone_data(u).dha_Hcore = dha_gauss_tag(i).Hcore;
             cyclone_data(u).dha_P = dha_gauss_tag(i).P;
-            cyclone_data(u).dha_Plow = dha_gauss_tag(i).Plow;
-            cyclone_data(u).dha_Phih = dha_gauss_tag(i).Phih;
 
             %%% Background data
             cyclone_data(u).bathymetric_var = background(tag_no).bathymetric_var(i);
@@ -123,8 +113,9 @@ save(string(output_path) + '/LLCcyclones.mat', 'detected_cyclones', 'missed_cycl
 
 %% Extra requirements for SCV classification (optional)!!
 
+input_path = '/Volumes/Elements/MEOPdata';
 output_path = '/Volumes/Elements/MEOPdata';
-load(string(output_path) + '/LLCcyclones.mat')
+load(string(input_path) + '/LLCcyclones.mat')
 
 OW_requirement = 0.1e-9;
 for i = 1:length(detected_cyclones)
@@ -135,7 +126,7 @@ end
 clear i
 
 %%% Shallow or Deep?
-deep = 1;
+deep = 0;
 depth_threshold = 1000;
 
 if deep == 1
@@ -144,17 +135,16 @@ else
     detected_cyclones = detected_cyclones(abs([detected_cyclones.bathymetry]) < depth_threshold);
 end
 
-%%% Removing edge cases
-
 %%% Loading seal data
-load('qc_ts.mat');
+load(string(input_path) + '/qc_ts.mat');
 
+%%% Removing edge cases
 for u = 1:length(detected_cyclones)
     tag_no = detected_cyclones(u).tag_no;
     i = detected_cyclones(u).cast;
 
-    first_cast = qc_ts(tag_no).cast(1);
-    last_cast = qc_ts(tag_no).cast(end);
+    first_cast = 1;
+    last_cast = length(qc_ts(tag_no).cast);
 
     if i <= (first_cast + 9) | i >= (last_cast - 9)
         ind(u) = 1;
@@ -169,7 +159,7 @@ detected_scvs = detected_cyclones;
 missed_scvs = missed_cyclones;
 
 %%% Additional requirements
-detected_scvs = detected_scvs([detected_scvs.anom_A] < 0); %%% Minty Cyclones
+%detected_scvs = detected_scvs([detected_scvs.anom_A] < 0); %%% Minty Cyclones
 detected_scvs = detected_scvs([detected_scvs.max_pres] >= 400);
 
 %%% Getting original results
@@ -180,7 +170,7 @@ OG_FP = length(detected_scvs_og([detected_scvs_og.True_cyclone] == 0));
 OG_FN = length(missed_scvs_og);
 
 fn = fieldnames(detected_scvs);
-fn = fn(4:26);
+fn = fn(5:19);
 
 clear u tag_no last_cast first_cast i ind
 
@@ -284,10 +274,8 @@ for cntr = 1:2
 
 end
 
-%save('initial_guesses_cyclones.mat', 'guess_all_max', 'guess_all_min');
-
 %%
-%%% Savining initial guess for chosen f-score
+%%% Saving initial guess for chosen f-score
 for cntr = 1:2
     if cntr == 1
         initial_stats_all = guess_all_min;
@@ -316,8 +304,6 @@ for cntr = 1:2
     end
 
 end
-
-%save('final_stats_cyclones.mat', 'final_stats_max', 'final_stats_min');
 
 clear initial_stats_tmp initial_stats_all_tmp f FN FP i idx ind m missed_scvs missed_scvs_og param stats TP u uu...
     u initial_stats_all detected_scvs_og detected_scvs_opt beta arr n cntr ii names
@@ -354,11 +340,11 @@ guess_max = guess_max_og;
 deltas = deltas_og;
 
 % Define hyperparameters for gradient descent
-max_iterations = 100; % Maximum number of iterations
+max_iterations = 250; % Maximum number of iterations
 if deep == 1
-    beta0 = 0.035;
+    beta0 = 0.03;
 else
-    beta0 = 0.025;  
+    beta0 = 0.015;  
 end
 guess_min.beta = beta0;
 guess_max.beta = beta0;
@@ -383,12 +369,6 @@ for i = 1:max_iterations
     %%% Calculating f-score and getting parameter value for next iteration
     for u = 1:length(param_names)
 
-        % if u <= length(param_names_min)
-        %     param_values_all(i,u) = guess_min.(param_names(u));
-        % else
-        %     param_values_all(i,u) = guess_max.(param_names(u));
-        % end
-        % deltas_all(i,:) = deltas;
 
         all_other_params = setdiff(1:length(param_names), u);
         tmp = vertcat(inds{all_other_params,1});
@@ -427,6 +407,20 @@ for i = 1:max_iterations
             guess_max.(param_names(u)) = tested_values{u,1}(uu);
         end
 
+        %%% Setting min values for R^2
+        if strcmp(param_names(u), "anom_R2") || strcmp(param_names(u), "dha_R2")
+            if guess_min.(param_names(u)) < 0.5
+                guess_min.(param_names(u)) = 0.5;
+            end
+        end
+
+        %%% Setting max value for NRMSE
+        if strcmp(param_names(u), "anom_nrmse") || strcmp(param_names(u), "dha_nrmse")
+            if guess_max.(param_names(u)) > 0.5
+                guess_max.(param_names(u)) = 0.5;
+            end
+        end
+
         %%% Updating delta value
         if abs(stats.f(uu) - stats.f(last_iteration)) > 0
             gamma = 1-(abs(stats.f(last_iteration) - stats.f(uu)) / (stats.f(last_iteration)));
@@ -455,8 +449,16 @@ for i = 1:max_iterations
     final_stats_min = guess_min;
     final_stats_max = guess_max;
 
+    %%% Stopping when convergence is achieved
+    if i > 10
+        if abs(mean(precision(end-5:end)) - precision(end)) / precision(end) < 1e-10
+            break
+        end
+    end
+
 end
 
+%%% Saving optimization results
 if deep == 1
     save(string(output_path) + '/final_stats_cyclones_deep', 'final_stats_max', 'final_stats_min', 'guess_max_og', 'guess_min_og', 'param_names_min', 'param_names_max', 'detected_scvs_opt', 'precision', 'f_all', 'OW_requirement', 'prct')
 else

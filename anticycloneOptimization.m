@@ -27,14 +27,16 @@ for ii = 1:length(snapshot_dates)
         for i = anticyclones(tag_no).dha
             
             isa_gauss_tag = isa_gauss{tag_no};
-            dha_gauss_tag = dha_gauss{tag_no};
+            dha_gauss_
+            tag = dha_gauss{tag_no};
             spice_gauss_tag = spice_gauss{tag_no};
 
-            %%% Excluding detections with a bad dha fit
-            if median(dha_gauss_tag(i).dataX) < 0
-                continue
-            end
+            % %%% Excluding detections with a bad dha fit
+            % if median(dha_gauss_tag(i).dataX) < 0
+            %  continue
+            % end
 
+            %%% Basic info
             anticyclone_data(u).date = date;
             anticyclone_data(u).tag_no = tag_no;
             anticyclone_data(u).cast = i;
@@ -128,8 +130,9 @@ save(string(output_path) + '/LLCanticyclones', 'detected_anticyclones', 'missed_
 
 %% Applying a minimum OW threshold 
 
+input_path = '/Volumes/Elements/MEOPdata';
 output_path = '/Volumes/Elements/MEOPdata';
-load(string(output_path) + '/LLCanticyclones.mat')
+load(string(input_path) + '/LLCanticyclones.mat')
 
 OW_requirement = 0.2e-9;
 
@@ -141,26 +144,24 @@ end
 clear i
 
 %%% Shallow or Deep?
-deep = 0;
+deep = 1;
 depth_threshold = 1000;
-
 if deep == 1
     detected_anticyclones = detected_anticyclones(abs([detected_anticyclones.bathymetry]) >= depth_threshold);
 else
     detected_anticyclones = detected_anticyclones(abs([detected_anticyclones.bathymetry]) < depth_threshold);
 end
 
-%%% Removing edge cases
-
 %%% Loading seal data
-load('qc_ts.mat');
+load(string(input_path) + '/qc_ts.mat');
 
+%%% Removing edge cases
 for u = 1:length(detected_anticyclones)
     tag_no = detected_anticyclones(u).tag_no;
     i = detected_anticyclones(u).cast;
 
-    first_cast = qc_ts(tag_no).cast(1);
-    last_cast = qc_ts(tag_no).cast(end);
+    first_cast = 1;
+    last_cast = length(qc_ts(tag_no).cast);
 
     if i <= (first_cast + 9) | i >= (last_cast - 9)
         ind(u) = 1;
@@ -170,13 +171,27 @@ for u = 1:length(detected_anticyclones)
 end
 detected_anticyclones = detected_anticyclones(~ind);
 
+% %%% Excluding detections based on pressure difference of fits
+% clear ind
+% for u = 1:length(detected_anticyclones)
+%     pres_diff = abs(detected_anticyclones(u).anom_P - detected_anticyclones(u).dha_P);
+% 
+%     if pres_diff <= 150
+%         ind(u) = 1;
+%     else
+%         ind(u) = 0;
+%     end
+% 
+% end
+% detected_anticyclones = detected_anticyclones(~ind);
+
 %%% Formatting data for optimization
 detected_scvs = detected_anticyclones;
 missed_scvs = missed_anticyclones;
 
-%%% Additional requirements
+%%% Additional requirements (making sure spice fits are reasonable)
 detected_scvs = detected_scvs(find(~cellfun(@isempty,{detected_scvs.spice_A})));
-%detected_scvs = detected_scvs([detected_scvs.spice_P] >= 0);
+detected_scvs = detected_scvs([detected_scvs.spice_P] >= 0);
 detected_scvs = detected_scvs([detected_scvs.max_pres] >= 400);
 
 %%% Getting original results
@@ -187,7 +202,7 @@ OG_FP = length(detected_scvs_og([detected_scvs_og.True_anticyclone] == 0));
 OG_FN = length(missed_scvs_og);
 
 fn = fieldnames(detected_scvs);
-fn = fn(4:24);
+fn = fn([5:14, 20:24]);
 
 clear u tag_no last_cast first_cast i ind
 
@@ -288,8 +303,6 @@ for cntr = 1:2
 
 end
 
-%save('initial_guesses_anticyclones.mat', 'guess_all_max', 'guess_all_min');
-
 %%% Savining initial guess for chosen f-score
 for cntr = 1:2
     if cntr == 1
@@ -326,8 +339,12 @@ clear initial_stats_tmp initial_stats_all_tmp f FN FP i idx ind m missed_scvs mi
 %% Getting initial delta values
 
 %%% List of parameters to optimize
-param_names_min = ["anom_A",  "anom_R2", "anom_P", "anom_Hcore", "dha_A", "dha_R2", "dha_P", "dha_Hcore","spice_A", "spice_R2", "spice_P", "spice_Hcore",];
-param_names_max = ["bathymetric_var", "isopycnal_stability", "spice_std", "MLD", "anom_nrmse", "anom_P", "anom_Hcore", "dha_nrmse", "dha_P", "dha_Hcore", "spice_nrmse", "spice_Hcore", "spice_P"];
+% param_names_min = ["anom_A",  "anom_R2", "anom_P", "anom_Hcore", "dha_A", "dha_R2", "dha_P", "dha_Hcore","spice_A", "spice_R2", "spice_P", "spice_Hcore"];
+% param_names_max = ["bathymetric_var", "isopycnal_stability", "spice_std", "MLD", "anom_nrmse", "anom_P", "anom_Hcore", "dha_nrmse", "dha_P", "dha_Hcore", "spice_nrmse", "spice_Hcore", "spice_P"];
+
+param_names_min = ["anom_A",  "anom_R2", "anom_P", "anom_Hcore", "dha_A", "dha_R2", "dha_P", "dha_Hcore"];
+param_names_max = ["bathymetric_var", "isopycnal_stability", "spice_std", "MLD", "anom_nrmse", "anom_P", "anom_Hcore", "dha_nrmse", "dha_P", "dha_Hcore"];
+
 param_names = horzcat(param_names_min, param_names_max);
 
 clear deltas_min deltas_max deltas deltas_og
@@ -358,9 +375,9 @@ deltas = deltas_og;
 max_iterations = 100;...; % Maximum number of iterations
 
 if deep == 1
-    beta0 = 0.035;
+    beta0 = 0.03;
 else
-    beta0 = 0.020;
+    beta0 = 0.02;
 end
 guess_min.beta = beta0;
 guess_max.beta = beta0;
@@ -422,7 +439,20 @@ for i = 1:max_iterations
 
         else
             guess_max.(param_names(u)) = tested_values{u,1}(uu);
+        end
 
+        %%% Setting min values for R^2
+        if strcmp(param_names(u), "anom_R2") || strcmp(param_names(u), "spice_R2") || strcmp(param_names(u), "dha_R2")
+            if guess_min.(param_names(u)) < 0.5
+                guess_min.(param_names(u)) = 0.5;
+            end
+        end
+
+        %%% Setting max value for NRMSE
+        if strcmp(param_names(u), "anom_nrmse") || strcmp(param_names(u), "spice_nrmse") || strcmp(param_names(u), "dha_nrmse")
+            if guess_max.(param_names(u)) > 0.5
+                guess_max.(param_names(u)) = 0.5;
+            end
         end
 
         %%% Updating delta value
@@ -453,45 +483,40 @@ for i = 1:max_iterations
     final_stats_min = guess_min;
     final_stats_max = guess_max;
 
+    %%% Stopping when convergence is achieved
+    if i > 10
+        if abs(mean(precision(end-5:end)) - precision(end)) / precision(end) < 1e-10
+            break
+        end
+    end
+
 end
 
+%%% Saving optimization results
 if deep == 1
     save(string(output_path) + '/final_stats_anticyclones_deep', 'final_stats_max', 'final_stats_min', 'guess_max_og', 'guess_min_og', 'param_names_min', 'param_names_max', 'detected_scvs_opt', 'precision', 'f_all', 'OW_requirement', 'prct')
 else
     save(string(output_path) + '/final_stats_anticyclones_shallow', 'final_stats_max', 'final_stats_min', 'guess_max_og', 'guess_min_og', 'param_names_min', 'param_names_max', 'detected_scvs_opt', 'precision', 'f_all', 'OW_requirement', 'prct')
 end
 
-%% Saving data
-
-%%% Saving optimized parameters
-output_path = '/Volumes/Elements/MEOPdata';
-
-if deep == 1
-    load(string(output_path) + '/final_stats_anticyclones_deep.mat')
-elseif deep == 0
-    load(string(output_path) + '/final_stats_anticyclones_shallow.mat')
-end
-
+%%
 %%% Getting "reasonable" threshold values
 final_stats_max_old = final_stats_max;
-param_names_min = ["anom_A",  "anom_R2", "spice_A", "spice_R2",  "dha_A", "dha_R2"];
-param_names_max = ["bathymetric_var", "isopycnal_stability", "spice_std", "MLD", "anom_nrmse" "spice_nrmse" "dha_nrmse"];
+param_names_min = ["anom_A",  "anom_R2", "dha_A", "dha_R2"];
+param_names_max = ["bathymetric_var", "isopycnal_stability", "spice_std", "MLD", "anom_nrmse", "dha_nrmse"];
 param_names = horzcat(param_names_min, param_names_max);
 
 clear final_stats_min final_stats_max
-final_stats_min.anom_A = 2;
-final_stats_min.anom_R2 = 0.5;
-final_stats_min.spice_A = 0.05;
-final_stats_min.spice_R2 = 0.5;
-final_stats_min.dha_A = 0.01;
-final_stats_min.dha_R2 = 0.5;
+final_stats_min.anom_A = 5;
+final_stats_min.anom_R2 = 0.6;
+final_stats_min.dha_A = 0.02;
+final_stats_min.dha_R2 = 0.6;
 
 final_stats_max.bathymetric_var = final_stats_max_old.bathymetric_var;
 final_stats_max.isopycnal_stability = final_stats_max_old.isopycnal_stability;
 final_stats_max.spice_std = final_stats_max_old.spice_std;
 final_stats_max.MLD = final_stats_max_old.MLD;
 final_stats_max.anom_nrmse = 0.3;
-final_stats_max.spice_nrmse= 0.3;
 final_stats_max.dha_nrmse = 0.3;
 
 %%% Saving reasonable data
