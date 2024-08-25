@@ -1,14 +1,14 @@
 %%% LLC4320 snapshot dates
-% snapshot_dates = {'01-Oct-2011','01-Nov-2011', '01-Dec-2011', '01-Jan-2012', '01-Feb-2012', '01-Mar-2012', '01-Apr-2012', '01-May-2012', ...
-%     '01-Jun-2012', '01-Jul-2012', '01-Aug-2012', '01-Sep-2012'};
-% date = snapshot_dates{12};
-% 
-% %%% Loading initial data
-% input_path = '/Volumes/Elements/LLCsealdata/Snapshot_';
+snapshot_dates = {'01-Oct-2011','01-Nov-2011', '01-Dec-2011', '01-Jan-2012', '01-Feb-2012', '01-Mar-2012', '01-Apr-2012', '01-May-2012', ...
+    '01-Jun-2012', '01-Jul-2012', '01-Aug-2012', '01-Sep-2012'};
+date = snapshot_dates{1};
+
+%%% Loading initial data (change to either LLCsealdata or qc_ts)
+input_path = '/Volumes/Elements/LLCsealdata/Snapshot_';
 output_path = '/Volumes/Elements/MEOPdata';
-% load(string(input_path) + string(date) + '/LLCsealdata_full');
-ts_data = qc_ts;
-modeldata = 0;
+load(string(input_path) + string(date) + '/LLCsealdata_full');
+ts_data = LLCseldata; 
+modeldata = 1;
 
 %%% Loading algorithm settings
 run('LLCseals_algorithm_settings.m')
@@ -34,7 +34,8 @@ else
 end
 
 %%
-%%% Anticyclonic-specific algorithm checks
+%%% Anticyclonic-specific algorithm checks (change first input to either
+%%% LLCsealdata or qc_ts)
 ts_data = anticyclonic_checks(LLCsealdata, test_prof, prms);
 
 %%% Extracting anticyclone-specific data
@@ -57,8 +58,9 @@ end
 clear isa_gauss dha_gauss spice_gauss anticyclones date
 
 %%
-%%% Cyclonic-specific algorithm checks
-ts_data = cyclonic_checks(qc_ts, test_prof, prms);
+%%% Cyclonic-specific algorithm checks (change first input to either
+%%% LLCsealdata or qc_ts)
+ts_data = cyclonic_checks(LLCsealdata, test_prof, prms);
 
 %%% Extracting cyclonic-specific data
 spice_gauss = cell(1,length(test_prof));
@@ -80,8 +82,9 @@ end
 clear spice_gauss dha_gauss cyclones date
 
 %%
-%%% Background-specific algorithm checks
-ts_data = background_checks(qc_ts, test_prof);
+%%% Background-specific algorithm checks (change first input to either
+%%% LLCsealdata or qc_ts)
+ts_data = background_checks(LLCsealdata, test_prof);
 
 %%% Extracting background-specific data
 for tag_no = 1:max(test_prof)
