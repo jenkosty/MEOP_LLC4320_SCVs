@@ -1,15 +1,15 @@
 %%% Loading data
-save_fig = 0;
+save_fig = 1;
 input_path = '/Volumes/Elements/MEOPdata';
 load(string(input_path) + '/qc_ts.mat');
 load(string(input_path) + '/optimized_cyclones_deep.mat')
 ts_data = qc_ts;
-u = 23; %59; %58; %23;
+u = 41; %59; %58; %23;
 tag_no = MEOPcyclones_optimized(u).tag_no;
 i = MEOPcyclones_optimized(u).cast;
 % tag_no = 182; %406; %386;
 % i = 41; %109; %76;
-
+%%
 clc;
 run('LLCseals_algorithm_settings.m');
 ts_data = preppingTimeSeriesForDetectionAlgorithm(ts_data, depth_grid, tag_no, prms, 0);
@@ -31,7 +31,7 @@ ymin = 0;
 ymax = 400;
 label_placement = [0.03, 0.95];
 label_placement_ts = [0.02, 0.9];
-rectangle_width = 0.5;
+rectangle_width = 0.75;
 
 use_subplot = 1;
 

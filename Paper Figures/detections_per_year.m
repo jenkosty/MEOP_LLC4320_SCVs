@@ -1,4 +1,4 @@
-save_fig = 1;
+save_fig = 0;
 input_path = '/Volumes/Elements/MEOPdata';
 
 %%% Getting temporal distribution of all MEOP profiles 
@@ -123,7 +123,7 @@ xticks(1:12)
 xticklabels([]);
 ylabel('Number of Detections', 'FontSize', fs)
 ax = gca; ax.FontSize = fs;
-%%
+
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% MEOP Normalized %%%
 %%%%%%%%%%%%%%%%%%%%%%%

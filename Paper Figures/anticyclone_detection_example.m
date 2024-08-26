@@ -3,14 +3,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%% Loading data
-save_figs = 1;
+save_figs = 0;
 input_path = '/Volumes/Elements/MEOPdata';
-%load(string(input_path) + '/qc_ts.mat');
+load(string(input_path) + '/qc_ts.mat');
 ts_data = qc_ts;
-%load(string(input_path) + '/optimized_anticyclones_shallow.mat')
+load(string(input_path) + '/optimized_anticyclones_shallow.mat')
 % tag_no = 115;
 % i = 154;
-u = 11; %8 18 26
+u = 6; %8 18 26
 tag_no = MEOPanticyclones_optimized(u).tag_no;
 i = MEOPanticyclones_optimized(u).cast;
 

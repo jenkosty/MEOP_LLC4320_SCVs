@@ -3,16 +3,17 @@ input_path = '/Volumes/Elements/MEOPdata';
 load(string(input_path) + '/qc_ts_full.mat')
 depth_threshold = 1000;
 
+%%
 %%% Getting N2 data from MEOP
 u = 1;
 for tag_no = 1:length(qc_ts)
     for i = 1:length(qc_ts(tag_no).cast)
         N2(:,u) = qc_ts(tag_no).ps.N2(:,i);
         N2ref(:,u) = qc_ts(tag_no).ps.ref_N2(:,i);
-        IS(:,u) = qc_ts(tag_no).ds.isopycnal_sepatation(:,i);
+        IS(:,u) = qc_ts(tag_no).ds.isopycnal_separation(:,i);
         NISA(:,u) = qc_ts(tag_no).ds.anoms.isopycnal_separation_normalized(:,i);
         DH(:,u) = qc_ts(tag_no).ps.dyn_height_anom(:,i);
-        DHA(:,i) = qc_ts(tag_no).ps.anoms.dyn_height_anom(:,i);
+        DHA(:,u) = qc_ts(tag_no).ps.anoms.dyn_height_anom(:,i);
         bathymetry(u) = qc_ts(tag_no).bathymetry(i);
         u = u + 1;
     end
@@ -69,10 +70,10 @@ for uu = 1:length(snapshot_dates)
         for i = 1:length(LLCsealdata(tag_no).cast)
             N2(:,u) = LLCsealdata(tag_no).ps.N2(:,i);
             N2ref(:,u) = LLCsealdata(tag_no).ps.ref_N2(:,i);
-            IS(:,u) = LLCsealdata(tag_no).ds.isopycnal_sepatation(:,i);
+            IS(:,u) = LLCsealdata(tag_no).ds.isopycnal_separation(:,i);
             NISA(:,u) = LLCsealdata(tag_no).ds.anoms.isopycnal_separation_normalized(:,i);
             DH(:,u) = LLCsealdata(tag_no).ps.dyn_height_anom(:,i);
-            DHA(:,i) = LLCsealdata(tag_no).ps.anoms.dyn_height_anom(:,i);
+            DHA(:,u) = LLCsealdata(tag_no).ps.anoms.dyn_height_anom(:,i);
             bathymetry(u) = LLCsealdata(tag_no).bathymetry(i);
             u = u + 1;
         end
@@ -111,10 +112,10 @@ for uu = 1:length(snapshot_dates)
 
 end
 
-save('Paper Figures/background_profiles.mat', 'MEOP_N2', 'MEOP_IS', 'MEOP_NISA', 'MEOP_DH', 'MEOP_DHA', 'LLC_N2', 'LLC_IS', 'LLC_NISA", LLC_DH', 'LLC_DHA', '-v7.3')
+save('Paper Figures/background_profiles.mat', 'MEOP_N2', 'MEOP_IS', 'MEOP_NISA', 'MEOP_DH', 'MEOP_DHA', 'LLC_N2', 'LLC_IS', 'LLC_NISA', 'LLC_DH', 'LLC_DHA', '-v7.3')
 %%
-load('backgrounds_new.mat')
-load('qc_ts.mat')
+%load('backgrounds_new.mat')
+%load('qc_ts.mat')
 snapshot_dates = {'01-Oct-2011','01-Nov-2011', '01-Dec-2011', '01-Jan-2012', '01-Feb-2012', '01-Mar-2012', '01-Apr-2012', '01-May-2012', ...
     '01-Jun-2012', '01-Jul-2012', '01-Aug-2012', '01-Sep-2012'};
 date = snapshot_dates{1};
@@ -127,44 +128,56 @@ end
 LLC_1 = LLC{1};
 
 %%
+save_fig = 0;
 f = figure('Position', [100 100 1000 800]);
 tiledlayout(1,2)
 fs = 15;
 
 %%% LLC colors
 clrs = distinguishable_colors(length(LLC_N2));
+density_grid = qc_ts(1).ds.sigma0(:,1);
+
+LLC_x = LLC_DH;
+MEOP_x = MEOP_DH;
+y = depth_grid;
+xlabel_text = 'DHA';
+ylabel_text = 'z';
 
 nexttile
 hold on
-for i = 1:length(LLC_N2)
-    a(i) = plot(LLC_N2{3,i}, depth_grid, 'Color', clrs(i,:), 'LineWidth', 2, 'DisplayName', LLC_N2{1,i});
+for i = 1:length(LLC_x)
+    a(i) = plot(LLC_x{3,i}, y, 'Color', clrs(i,:), 'LineWidth', 2, 'DisplayName', LLC_N2{1,i});
 end
-b = plot(MEOP_N2{3,1}, depth_grid, 'k', 'LineWidth', 6, 'DisplayName', 'MEOP');
+b = plot(MEOP_x{3,1}, y, 'k', 'LineWidth', 6, 'DisplayName', 'MEOP');
 set(gca, 'YDir', 'reverse')
-ylim([0 250])
-yline(-LLC_1.depth, 'Color', [0.5 0.5 0.5], 'LineWidth', 0.5)
-xlabel('N^2 [1/s^2]', 'FontSize', fs)
-ylabel('Pressure [dbar]', 'FontSize', fs)
+ylim([0 500])
+%yline(-LLC_1.depth, 'Color', [0.5 0.5 0.5], 'LineWidth', 0.5)
+grid on
+xlabel(string(xlabel_text), 'FontSize', fs)
+ylabel(string(ylabel_text), 'FontSize', fs)
 legend([a,b], 'Location', 'SouthEast','FontSize', fs)
 title('Shelf')
 ax = gca; ax.FontSize = fs;
 
 nexttile
 hold on
-for i = 1:length(LLC_N2)
-    a(i) = plot(LLC_N2{4,i}, depth_grid, 'Color', clrs(i,:), 'LineWidth', 2, 'DisplayName', LLC_N2{1,i});
+for i = 1:length(LLC_x)
+    a(i) = plot(LLC_x{4,i},y, 'Color', clrs(i,:), 'LineWidth', 2, 'DisplayName', LLC_N2{1,i});
 end
-b = plot(MEOP_N2{4,1}, depth_grid, 'k', 'LineWidth', 6, 'DisplayName', 'MEOP');
+b = plot(MEOP_x{4,1}, y, 'k', 'LineWidth', 6, 'DisplayName', 'MEOP');
 set(gca, 'YDir', 'reverse')
-ylim([0 250])
-yline(-LLC_1.depth, 'Color', [0.5 0.5 0.5], 'LineWidth', 0.5)
-xlabel('N^2 [1/s^2]', 'FontSize', fs)
-ylabel('Pressure [dbar]', 'FontSize', fs)
+ylim([0 500])
+%yline(-LLC_1.depth, 'Color', [0.5 0.5 0.5], 'LineWidth', 0.5)
+grid on
+xlabel(string(xlabel_text), 'FontSize', fs)
+ylabel(string(ylabel_text), 'FontSize', fs)
 %legend([a,b], 'Location', 'SouthEast','FontSize', fs)
 title('Off-Shelf')
 ax = gca; ax.FontSize = fs;
 
-exportgraphics(f,'Paper Figures/background_stratification_w_bathymetry.png','Resolution',600)
+if save_fig == 1
+    exportgraphics(f,'Paper Figures/background_stratification_w_bathymetry.png','Resolution',600)
+end
 
 % nexttile
 % hold on

@@ -56,11 +56,11 @@ for tag_no = 1:length(qc_ts)
         spice_gauss_tag = spice_gauss{tag_no};
         dha_gauss_tag = dha_gauss{tag_no};
 
-        % %%% Excluding detections based on pressure difference of fits
-        % pres_diff = abs(isa_gauss_tag(i).P - dha_gauss_tag(i).P);
-        % if pres_diff > 100
-        %     continue
-        % end
+        %%% Excluding detections based on pressure difference of fits
+        pres_diff = abs(isa_gauss_tag(i).P - dha_gauss_tag(i).P);
+        if pres_diff > 150
+            continue
+        end
 
         anticyclone_data(u).date = qc_ts(tag_no).time(i,:);
         anticyclone_data(u).tag_no = tag_no;
@@ -306,7 +306,7 @@ else
 end
 
 %% Combining shallow and deep detections (must run both versions first!)
-
+input_path = '/Volumes/Elements/MEOPdata';
 load(string(input_path) + '/optimized_anticyclones_deep.mat')
 LLCanticyclones_optimized_tmp1 = LLCanticyclones_optimized;
 MEOPanticyclones_optimized_tmp1 = MEOPanticyclones_optimized;

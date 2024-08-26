@@ -3,6 +3,9 @@
 %%% Coastline data
 load('AntarcticCoastline_rtopo2.mat')
 load('rtopo_1080x310.mat')
+load('ACCfronts.mat')
+front_lats = {'LatSACCF'};
+front_lons = {'LonSACCF'};
 save_fig = 1;
 input_path = '/Volumes/Elements/MEOPdata';
 load(string(input_path) + '/optimized_cyclones.mat')
@@ -29,6 +32,9 @@ nexttile()
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 a = scatterm([LLC.lat], [LLC.lon], LLCsize, 'k', LLCshape, 'filled', 'DisplayName', 'LLC4320'); % Just for legend
 b = scatterm([MEOP.lat], [MEOP.lon], MEOPsize, 'k', MEOPshape, 'filled', 'MarkerEdgeColor', 'k', 'DisplayName', 'MEOP'); % Just for legend
@@ -36,8 +42,8 @@ scatterm([LLC.lat], [LLC.lon], LLCsize, [LLC.(param)], LLCshape, 'filled', 'Disp
 scatterm([MEOP.lat], [MEOP.lon], MEOPsize, [MEOP.(param)], MEOPshape, 'filled', 'MarkerEdgeColor', 'k', 'DisplayName', 'MEOP');
 title('Spice Anomaly', 'FontSize', fs)
 colormap(clrmap);
-cmin = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 0);
-cmax = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 100);
+cmin = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 5);
+cmax = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 99);
 clim([cmin cmax])
 cticks = linspace(cmin, cmax, (no_colors+3) / 3);
 h = colorbar; 
@@ -47,19 +53,21 @@ h.Label.String = "[kg/m^3]"; h.Label.Rotation = 270; h.Label.VerticalAlignment =
 legend([b a], 'FontSize', fs, 'Location', 'southwest' );
 ax = gca; ax.FontSize = fs;
 
-
 %%% DHA Anomaly
 param = 'dha_A';
 nexttile
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 scatterm([LLC.lat], [LLC.lon], LLCsize, [LLC.(param)], LLCshape, 'filled')
 scatterm([MEOP.lat], [MEOP.lon], MEOPsize, [MEOP.(param)], MEOPshape, 'filled', 'MarkerEdgeColor', 'k')
 title('Dynamic Height Anomaly', 'FontSize', fs)
 colormap(clrmap);
-cmin = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 0);
+cmin = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 5);
 cmax = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 100);
 clim([cmin cmax])
 cticks = linspace(cmin, cmax, (no_colors+3) / 3);
@@ -75,13 +83,16 @@ nexttile
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 scatterm([LLC.lat], [LLC.lon], LLCsize, [LLC.(param)], LLCshape, 'filled')
 scatterm([MEOP.lat], [MEOP.lon], MEOPsize, [MEOP.(param)], MEOPshape, 'filled', 'MarkerEdgeColor', 'k')
 title('Core Depth', 'FontSize', fs)
 colormap(clrmap);
-cmin = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 0);
-cmax = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 90);
+cmin = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 5);
+cmax = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 100);
 clim([cmin cmax])
 cticks = linspace(cmin, cmax, (no_colors+3) / 3);
 h = colorbar; 
@@ -96,13 +107,16 @@ nexttile
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 scatterm([LLC.lat], [LLC.lon], LLCsize, [LLC.(param)], LLCshape, 'filled')
 scatterm([MEOP.lat], [MEOP.lon], MEOPsize, [MEOP.(param)], MEOPshape, 'filled', 'MarkerEdgeColor', 'k')
 title('Core Width', 'FontSize', fs)
 colormap(clrmap);
 cmin = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 0);
-cmax = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 90);
+cmax = prctile(horzcat([LLC.(param)], [MEOP.(param)]), 100);
 clim([cmin cmax])
 cticks = linspace(cmin, cmax, (no_colors+3) / 3);
 h = colorbar; 

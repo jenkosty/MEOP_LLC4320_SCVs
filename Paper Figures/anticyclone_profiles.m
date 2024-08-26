@@ -159,7 +159,7 @@ y_fill = vertcat(depth_grid, flipud(depth_grid));
 fill(x_fill, y_fill, LLCclr, 'FaceAlpha', alpha, 'LineStyle', 'none'); 
 b = plot(mean(LLCdata(:,strcmp([LLC.type], "deep")), 2, 'omitnan'), depth_grid, 'Color', LLCclr, 'LineWidth', lw, 'DisplayName', 'LLC4320');
 plot(mean(LLCdata(:,strcmp([LLC.type], "shallow")), 2, 'omitnan'), depth_grid, '--', 'Color', LLCclr, 'LineWidth', lw, 'DisplayName', 'LLC4320');
-xlim([0 30])
+xlim([0 20])
 
 xline(0, '--k', 'LineWidth', 2)
 set(gca, 'YDir', 'reverse')

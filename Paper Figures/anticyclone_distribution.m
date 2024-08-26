@@ -1,9 +1,12 @@
 %% Loading Data
-save_fig = 0;
+save_fig = 1;
 
 %%% Coastline data
 load('AntarcticCoastline_rtopo2.mat')
 load('rtopo_1080x310.mat')
+load('ACCfronts.mat')
+front_lats = {'LatSACCF'};
+front_lons = {'LonSACCF'};
 input_path = '/Volumes/Elements/MEOPdata';
 load(string(input_path) + '/optimized_anticyclones.mat')
 
@@ -34,6 +37,9 @@ nexttile()
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 a = scatterm([LLC.lat], [LLC.lon], LLCsize, 'k', LLCshape, 'filled', 'DisplayName', 'LLC4320'); % Just for legend
 b = scatterm([MEOP.lat], [MEOP.lon], MEOPsize, 'k', MEOPshape, 'filled', 'MarkerEdgeColor', 'k', 'DisplayName', 'MEOP'); % Just for legend
@@ -52,13 +58,15 @@ h.Label.String = "[kg/m^3]"; h.Label.Rotation = 270; h.Label.VerticalAlignment =
 legend([b a], 'FontSize', fs, 'Location', 'southwest' );
 ax = gca; ax.FontSize = fs;
 
-
 %%% DHA Anomaly
 param = 'dha_A';
 nexttile
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 scatterm([LLC.lat], [LLC.lon], LLCsize, [LLC.(param)], LLCshape, 'filled')
 scatterm([MEOP.lat], [MEOP.lon], MEOPsize, [MEOP.(param)], MEOPshape, 'filled', 'MarkerEdgeColor', 'k')
@@ -80,6 +88,9 @@ nexttile
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 scatterm([LLC.lat], [LLC.lon], LLCsize, [LLC.(param)], LLCshape, 'filled')
 scatterm([MEOP.lat], [MEOP.lon], MEOPsize, [MEOP.(param)], MEOPshape, 'filled', 'MarkerEdgeColor', 'k')
@@ -101,6 +112,9 @@ nexttile
 axesm('stereo', 'Origin', [-90 0], 'MapLatLimit', [-90 -57]);
 axis off; framem on; hold on;
 contourm(YC, XC, coastline, [0 0], 'Fill', 'off', 'Color', 'k', 'LineWidth', 2)
+for u = 1:length(front_lons)
+    plotm(ACCfronts.(front_lats{u}), ACCfronts.(front_lons{u}), 'b', 'LineWidth', 2)
+end
 plotm(cntrs_sub{1}(2,:),cntrs_sub{1}(1,:),'Color','k','LineWidth',2,'LineStyle','--');
 scatterm([LLC.lat], [LLC.lon], LLCsize, [LLC.(param)], LLCshape, 'filled')
 scatterm([MEOP.lat], [MEOP.lon], MEOPsize, [MEOP.(param)], MEOPshape, 'filled', 'MarkerEdgeColor', 'k')
